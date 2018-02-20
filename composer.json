@@ -22,7 +22,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Rebelcode\\Storage\\Resource\\WordPress\\": "src"
+            "Rebelcode\\Storage\\Resource\\Pdo\\": "src"
         }
     },
     "scripts": {
