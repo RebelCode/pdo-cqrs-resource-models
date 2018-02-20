@@ -28,7 +28,8 @@
     "autoload-dev": {
         "psr-4": {
             "RebelCode\\Storage\\Resource\\Pdo\\FuncTest": "test/functional",
-            "RebelCode\\Storage\\Resource\\Pdo\\UnitTest": "test/unit"
+            "RebelCode\\Storage\\Resource\\Pdo\\UnitTest": "test/unit",
+            "RebelCode\\Storage\\Resource\\Pdo\\TestStub": "test/stub"
         }
     },
     "scripts": {
