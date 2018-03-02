@@ -157,7 +157,9 @@ trait InsertCapablePdoTrait
      *
      * @since [*next-version*]
      *
-     * @param string $value The value to hash.
+     * @param int|float|bool|string|Stringable $value The value to hash.
+     *
+     * @throws InvalidArgumentException If the value is not a valid hash-able value.
      *
      * @return string The string hash.
      */
