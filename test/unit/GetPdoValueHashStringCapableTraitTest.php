@@ -39,6 +39,8 @@ class GetPdoValueHashStringCapableTraitTest extends TestCase
                                 $methods,
                                 [
                                     '_normalizeString',
+                                    '_createInvalidArgumentException',
+                                    '__',
                                 ]
                             )
                         );
@@ -49,6 +51,12 @@ class GetPdoValueHashStringCapableTraitTest extends TestCase
                 return (string) $input;
             }
         );
+        $mock->method('_createInvalidArgumentException')->willReturnCallback(
+            function ($m, $c, $p, $v) {
+                return new InvalidArgumentException($m, $c, $p);
+            }
+        );
+        $mock->method('__')->willReturnArgument(0);
 
         return $mock;
     }
@@ -167,9 +175,16 @@ class GetPdoValueHashStringCapableTraitTest extends TestCase
         $reflect = $this->reflect($subject);
 
         $value = new stdClass();
-        $this->setExpectedException('InvalidArgumentException');
+        $subject->method('_normalizeString')->willThrowException($inner = new InvalidArgumentException());
 
-        $subject->method('_normalizeString')->willThrowException(new InvalidArgumentException());
-        $reflect->_getPdoValueHashString($value);
+        try {
+            $reflect->_getPdoValueHashString($value);
+        } catch (InvalidArgumentException $invalidArgumentException) {
+            $this->assertSame(
+                $inner,
+                $invalidArgumentException->getPrevious(),
+                'Expected and actual inner exceptions do not match'
+            );
+        }
     }
 }
