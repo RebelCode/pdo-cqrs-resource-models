@@ -11,6 +11,7 @@ use Dhii\Storage\Resource\DeleteCapableInterface;
 use Dhii\Util\Normalization\NormalizeArrayCapableTrait;
 use Dhii\Util\Normalization\NormalizeStringCapableTrait;
 use Dhii\Util\String\StringableInterface as Stringable;
+use InvalidArgumentException;
 use PDO;
 use RebelCode\Storage\Resource\Sql\BuildDeleteSqlCapableTrait;
 use RebelCode\Storage\Resource\Sql\BuildSqlWhereClauseCapableTrait;
@@ -150,6 +151,8 @@ class PdoDeleteResourceModel extends AbstractPdoResourceModel implements DeleteC
      * @param TemplateInterface     $expressionTemplate The template for rendering SQL expressions.
      * @param string|Stringable     $table              The name of the table from which records will be deleted.
      * @param string[]|Stringable[] $fieldColumnMap     A map of field names to table column names.
+     *
+     * @throws InvalidArgumentException If table or field-column map are invalid.
      */
     public function __construct(PDO $pdo, TemplateInterface $expressionTemplate, $table, $fieldColumnMap)
     {
