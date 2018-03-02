@@ -7,7 +7,6 @@ use Dhii\Expression\TermInterface;
 use Dhii\Util\String\StringableInterface as Stringable;
 use PDO;
 use PDOStatement;
-use Psr\Container\NotFoundExceptionInterface;
 use Traversable;
 
 /**
