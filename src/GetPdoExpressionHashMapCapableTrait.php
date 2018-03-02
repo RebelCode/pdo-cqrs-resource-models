@@ -2,11 +2,13 @@
 
 namespace RebelCode\Storage\Resource\Pdo;
 
+use Exception as RootException;
 use Dhii\Expression\ExpressionInterface;
 use Dhii\Expression\LiteralTermInterface;
 use Dhii\Expression\TermInterface;
 use Dhii\Util\String\StringableInterface as Stringable;
 use InvalidArgumentException;
+use OutOfRangeException;
 
 /**
  * Common functionality for objects that can generate an expression value hash map for use in PDO parameter binding.
@@ -24,6 +26,8 @@ trait GetPdoExpressionHashMapCapableTrait
      * @param string[]|Stringable[] $ignore       A list of term names to ignore, typically column names.
      * @param array                 $valueHashMap The value hash map reference to write to.
      *
+     * @throws OutOfRangeException If the condition contains an invalid value.
+     *
      * @return array A map of value names to their respective hashes.
      */
     protected function _getPdoExpressionHashMap(TermInterface $condition, array $ignore = [], array &$valueHashMap = [])
@@ -34,10 +38,20 @@ trait GetPdoExpressionHashMapCapableTrait
 
         if ($condition instanceof LiteralTermInterface) {
             $value = $condition->getValue();
-            $value = $this->_normalizeString($value);
 
-            if (!in_array($value, $ignore)) {
-                $valueHashMap[$value] = $this->_getPdoValueHashString($value);
+            try {
+                $value = $this->_normalizeString($value);
+
+                if (!in_array($value, $ignore)) {
+                    $valueHashMap[$value] = $this->_getPdoValueHashString($value);
+                }
+            } catch (InvalidArgumentException $invalidArgumentException) {
+                throw $this->_createOutOfRangeException(
+                    $this->__('The condition contains an invalid value'),
+                    null,
+                    $invalidArgumentException,
+                    $value
+                );
             }
         }
 
@@ -55,7 +69,9 @@ trait GetPdoExpressionHashMapCapableTrait
      *
      * @since [*next-version*]
      *
-     * @param string $value The value to hash.
+     * @param int|float|bool|string|Stringable $value The value to hash.
+     *
+     * @throws InvalidArgumentException If the value is not a valid hash-able value.
      *
      * @return string The string hash.
      */
@@ -76,4 +92,37 @@ trait GetPdoExpressionHashMapCapableTrait
      * @return string The string that resulted from normalization.
      */
     abstract protected function _normalizeString($subject);
+
+    /**
+     * Creates a new Dhii Out Of Range exception.
+     *
+     * @since [*next-version*]
+     *
+     * @param string|Stringable|int|float|bool|null $message  The message, if any.
+     * @param int|float|string|Stringable|null      $code     The numeric error code, if any.
+     * @param RootException|null                    $previous The inner exception, if any.
+     * @param mixed|null                            $argument The value that is out of range, if any.
+     *
+     * @return OutOfRangeException The new exception.
+     */
+    abstract protected function _createOutOfRangeException(
+        $message = null,
+        $code = null,
+        RootException $previous = null,
+        $argument = null
+    );
+
+    /**
+     * Translates a string, and replaces placeholders.
+     *
+     * @since [*next-version*]
+     * @see   sprintf()
+     *
+     * @param string $string  The format string to translate.
+     * @param array  $args    Placeholder values to replace in the string.
+     * @param mixed  $context The context for translation.
+     *
+     * @return string The translated string.
+     */
+    abstract protected function __($string, $args = [], $context = null);
 }

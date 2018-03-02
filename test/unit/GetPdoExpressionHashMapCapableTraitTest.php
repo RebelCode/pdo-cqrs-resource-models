@@ -3,6 +3,8 @@
 namespace RebelCode\Storage\Resource\Pdo\UnitTest;
 
 use Dhii\Expression\ExpressionInterface;
+use InvalidArgumentException;
+use OutOfRangeException;
 use PHPUnit_Framework_MockObject_MockObject as MockObject;
 use RebelCode\Storage\Resource\Pdo\GetPdoExpressionHashMapCapableTrait as TestSubject;
 use Xpmock\TestCase;
@@ -31,7 +33,14 @@ class GetPdoExpressionHashMapCapableTraitTest extends TestCase
     public function createInstance()
     {
         $builder = $this->getMockBuilder(static::TEST_SUBJECT_CLASSNAME)
-                        ->setMethods(['_normalizeString', '_getPdoValueHashString']);
+                        ->setMethods(
+                            [
+                                '_normalizeString',
+                                '_getPdoValueHashString',
+                                '_createOutOfRangeException',
+                                '__',
+                            ]
+                        );
 
         $mock = $builder->getMockForTrait();
         $mock->method('_getPdoValueHashString')->willReturnArgument(0);
@@ -40,6 +49,12 @@ class GetPdoExpressionHashMapCapableTraitTest extends TestCase
                 return strval($arg);
             }
         );
+        $mock->method('_createOutOfRangeException')->willReturnCallback(
+            function ($m, $c, $p, $v) {
+                return new OutOfRangeException($m, $c, $p);
+            }
+        );
+        $mock->method('__')->willReturnArgument(0);
 
         return $mock;
     }
@@ -225,5 +240,61 @@ class GetPdoExpressionHashMapCapableTraitTest extends TestCase
         $result = $reflect->_getPdoExpressionHashMap($expression, ['a']);
 
         $this->assertArrayNotHasKey('a', $result, 'Retrieved hash map contains hash for "a".');
+    }
+
+    /**
+     * Tests the expression value hash map getter method when the string normalization fails to assert whether the
+     * correct wrapping exception is thrown with the string normalization exception as an inner exception.
+     *
+     * @since [*next-version*]
+     */
+    public function testGetExpressionValueHashMapNormalizeStringException()
+    {
+        $subject = $this->createInstance();
+        $reflect = $this->reflect($subject);
+
+        $expression = $this->createLiteralTerm('');
+
+        $subject->method('_normalizeString')->willThrowException($inner = new InvalidArgumentException());
+
+        try {
+            $reflect->_getPdoExpressionHashMap($expression);
+
+            $this->fail('Expected an OutOfRangeException to be thrown.');
+        } catch (OutOfRangeException $outOfRangeException) {
+            $this->assertSame(
+                $inner,
+                $outOfRangeException->getPrevious(),
+                'Expected and actual inner exceptions do not match.'
+            );
+        }
+    }
+
+    /**
+     * Tests the expression value hash map getter method when the value hashing fails to assert whether the correct
+     * wrapping exception is thrown with the value hashing exception as an inner exception.
+     *
+     * @since [*next-version*]
+     */
+    public function testGetExpressionValueHashMapHashStringException()
+    {
+        $subject = $this->createInstance();
+        $reflect = $this->reflect($subject);
+
+        $expression = $this->createLiteralTerm('');
+
+        $subject->method('_getPdoValueHashString')->willThrowException($inner = new InvalidArgumentException());
+
+        try {
+            $reflect->_getPdoExpressionHashMap($expression);
+
+            $this->fail('Expected an OutOfRangeException to be thrown.');
+        } catch (OutOfRangeException $outOfRangeException) {
+            $this->assertSame(
+                $inner,
+                $outOfRangeException->getPrevious(),
+                'Expected and actual inner exceptions do not match.'
+            );
+        }
     }
 }
