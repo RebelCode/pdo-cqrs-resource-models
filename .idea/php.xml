@@ -42,7 +42,6 @@
       <path value="$PROJECT_DIR$/vendor/dhii/expression-interface" />
       <path value="$PROJECT_DIR$/vendor/dhii/evaluable-interface" />
       <path value="$PROJECT_DIR$/vendor/dhii/cqrs-resource-model-interface" />
-      <path value="$PROJECT_DIR$/vendor/dhii/exception-interface" />
       <path value="$PROJECT_DIR$/vendor/dhii/validation-interface" />
       <path value="$PROJECT_DIR$/vendor/dhii/output-renderer-interface" />
       <path value="$PROJECT_DIR$/vendor/dhii/stringable-interface" />
@@ -61,6 +60,7 @@
       <path value="$PROJECT_DIR$/vendor/dhii/data-container-interface" />
       <path value="$PROJECT_DIR$/vendor/dhii/data-container-base" />
       <path value="$PROJECT_DIR$/vendor/dhii/iterator-helper-base" />
+      <path value="$PROJECT_DIR$/vendor/dhii/exception-interface" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="5.4.0" />
