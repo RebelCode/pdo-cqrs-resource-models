@@ -22,9 +22,14 @@ trait UpdateCapablePdoTrait
      *
      * @since [*next-version*]
      *
-     * @param array|TermInterface[]|Traversable $changeSet The change set, mapping field names to their new values or
-     *                                                     value expressions.
-     * @param LogicalExpressionInterface|null   $condition Optional condition that records must satisfy to be updated.
+     * @param array|Traversable               $changeSet The change set, mapping field names to their new values.
+     *                                                   Accepted value types are:
+     *                                                   * int
+     *                                                   * float
+     *                                                   * string
+     *                                                   * bool
+     *                                                   * Dhii\Expression\TermInterface
+     * @param LogicalExpressionInterface|null $condition Optional condition that records must satisfy to be updated.
      *
      * @return PDOStatement The executed PDO statement.
      */

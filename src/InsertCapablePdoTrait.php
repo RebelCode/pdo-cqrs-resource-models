@@ -26,7 +26,11 @@ trait InsertCapablePdoTrait
      *
      * @since [*next-version*]
      *
-     * @param array[]|ArrayAccess[]|stdClass[]|ContainerInterface[]|Traversable $records A list of records to insert.
+     * @param array|Traversable $records A list of records data containers. Accepted container types are:
+     *                                   * array
+     *                                   * ArrayAccess
+     *                                   * stdClass
+     *                                   * Psr\Container\ContainerInterface
      *
      * @throws ContainerExceptionInterface If an error occurred while reading from a record's container.
      *
