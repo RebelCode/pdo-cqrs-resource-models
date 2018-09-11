@@ -4,9 +4,14 @@ namespace RebelCode\Storage\Resource\Pdo;
 
 use Dhii\Expression\LogicalExpressionInterface;
 use Dhii\Expression\TermInterface;
+use Dhii\Storage\Resource\Sql\OrderInterface;
 use Dhii\Util\String\StringableInterface as Stringable;
+use InvalidArgumentException;
+use OutOfRangeException;
 use PDO;
 use PDOStatement;
+use Psr\Container\ContainerInterface;
+use stdClass;
 use Traversable;
 
 /**
@@ -17,16 +22,26 @@ use Traversable;
 trait SelectCapablePdoTrait
 {
     /**
-     * Executes a SELECT SQL query, retrieving records from the database that satisfy the given condition.
+     * Retrieves records from storage.
      *
      * @since [*next-version*]
+     * @see   ContainerInterface
      *
-     * @param LogicalExpressionInterface|null $condition Optional condition that records must satisfy.
-     *                                                   If null, all records in the target table are retrieved.
+     * @param LogicalExpressionInterface|null            $condition An optional condition which, if given, restricts
+     *                                                              the result set to records that satisfy this
+     *                                                              condition.
+     * @param OrderInterface[]|stdClass|Traversable|null $ordering  The ordering, as a list of `OrderInterface` objects.
+     * @param int|float|string|Stringable|null           $limit     The number of records to limit the query to.
+     * @param int|float|string|Stringable|null           $offset    The number of records to offset by, zero-based.
      *
-     * @return array|Traversable A list of retrieved records.
+     * @return ContainerInterface[]|Traversable A list of containers, each containing the data for a single record.
      */
-    protected function _select(LogicalExpressionInterface $condition = null)
+    protected function _select(
+        LogicalExpressionInterface $condition = null,
+        $ordering = null,
+        $limit = null,
+        $offset = null
+    )
     {
         $fields       = $this->_getSqlSelectFieldNames();
         $valueHashMap = ($condition !== null)
@@ -38,6 +53,9 @@ trait SelectCapablePdoTrait
             $this->_getSqlSelectTables(),
             $this->_getSqlSelectJoinConditions(),
             $condition,
+            $ordering,
+            $limit,
+            $offset,
             $valueHashMap
         );
 
@@ -49,20 +67,30 @@ trait SelectCapablePdoTrait
      *
      * @since [*next-version*]
      *
-     * @param string[]|Stringable[]           $columns        A list of names of columns to select.
-     * @param array                           $tables         A list of names of tables to select from.
-     * @param LogicalExpressionInterface[]    $joinConditions Optional list of JOIN conditions, keyed by table name.
-     * @param LogicalExpressionInterface|null $whereCondition Optional WHERE condition.
-     * @param array                           $valueHashMap   Optional map of value names and their hashes.
+     * @param array|stdClass|Traversable        $columns  The columns, as a map of aliases (as keys) mapping to
+     *                                                    column names, expressions or entity field instances.
+     * @param array|stdClass|Traversable        $tables   A mapping of tables aliases (keys) to their real names.
+     * @param array|Traversable                 $joins    A list of JOIN logical expressions, keyed by table name.
+     * @param LogicalExpressionInterface|null   $where    The WHERE logical expression condition.
+     * @param OrderInterface[]|Traversable|null $ordering The ordering, as a list of OrderInterface instances.
+     * @param int|null                          $limit    The number of records to limit the query to.
+     * @param int|null                          $offset   The number of records to offset by, zero-based.
+     * @param array                             $hashmap  Optional map of value names and their hashes.
+     *
+     * @throws InvalidArgumentException If an argument is invalid.
+     * @throws OutOfRangeException      If the limit or offset are invalid numbers.
      *
      * @return string The built SQL query string.
      */
     abstract protected function _buildSelectSql(
-        array $columns,
-        array $tables,
-        array $joinConditions = [],
-        LogicalExpressionInterface $whereCondition = null,
-        array $valueHashMap = []
+        $columns,
+        $tables,
+        $joins = [],
+        LogicalExpressionInterface $where = null,
+        $ordering = null,
+        $limit = null,
+        $offset = null,
+        array $hashmap = []
     );
 
     /**

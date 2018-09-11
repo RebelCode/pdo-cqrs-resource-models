@@ -13,12 +13,14 @@ use Dhii\Exception\CreateOutOfRangeExceptionCapableTrait;
 use Dhii\I18n\StringTranslatingTrait;
 use Dhii\Storage\Resource\InsertCapableInterface;
 use Dhii\Util\Normalization\NormalizeArrayCapableTrait;
+use Dhii\Util\Normalization\NormalizeIterableCapableTrait;
 use Dhii\Util\Normalization\NormalizeStringCapableTrait;
 use Dhii\Util\String\StringableInterface as Stringable;
 use PDO;
 use RebelCode\Storage\Resource\Sql\BuildInsertSqlCapableTrait;
 use RebelCode\Storage\Resource\Sql\BuildSqlRecordValuesCapableTrait;
-use RebelCode\Storage\Resource\Sql\EscapeSqlReferencesCapableTrait;
+use RebelCode\Storage\Resource\Sql\EscapeSqlReferenceCapableTrait;
+use RebelCode\Storage\Resource\Sql\EscapeSqlReferenceListCapableTrait;
 use RebelCode\Storage\Resource\Sql\NormalizeSqlValueCapableTrait;
 use RebelCode\Storage\Resource\Sql\SqlColumnNamesAwareTrait;
 use RebelCode\Storage\Resource\Sql\SqlFieldColumnMapAwareTrait;
@@ -63,12 +65,15 @@ class PdoInsertResourceModel extends AbstractPdoResourceModel implements InsertC
      */
     use NormalizeSqlValueCapableTrait;
 
+    /* @since [*next-version*] */
+    use EscapeSqlReferenceListCapableTrait;
+
     /*
      * Provides SQL reference escaping functionality.
      *
      * @since [*next-version*]
      */
-    use EscapeSqlReferencesCapableTrait;
+    use EscapeSqlReferenceCapableTrait;
 
     /*
      * Provides PDO value hash generation functionality.
@@ -139,6 +144,9 @@ class PdoInsertResourceModel extends AbstractPdoResourceModel implements InsertC
      * @since [*next-version*]
      */
     use NormalizeArrayCapableTrait;
+
+    /* @since [*next-version*] */
+    use NormalizeIterableCapableTrait;
 
     /*
      * Provides functionality for creating invalid argument exceptions.

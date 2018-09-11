@@ -4,8 +4,13 @@ namespace RebelCode\Storage\Resource\Pdo;
 
 use Dhii\Expression\LogicalExpressionInterface;
 use Dhii\Expression\TermInterface;
+use Dhii\Storage\Resource\Sql\OrderInterface;
 use Dhii\Util\String\StringableInterface as Stringable;
+use InvalidArgumentException;
+use OutOfRangeException;
 use PDOStatement;
+use stdClass;
+use Traversable;
 
 /**
  * Common functionality for objects that can delete records in a database via PDO.
@@ -19,11 +24,22 @@ trait DeleteCapablePdoTrait
      *
      * @since [*next-version*]
      *
-     * @param LogicalExpressionInterface|null $condition Optional condition that records must satisfy to be deleted.
+     * @param LogicalExpressionInterface|null            $condition An optional condition which, if specified,
+     *                                                              restricts the deletion to records that satisfy this
+     *                                                              condition.
+     * @param OrderInterface[]|stdClass|Traversable|null $ordering  The ordering, as a list of `OrderInterface`
+     *                                                              objects.
+     * @param int|float|string|Stringable|null           $limit     The number of records to limit the query to.
+     * @param int|float|string|Stringable|null           $offset    The number of records to offset by, zero-based.
      *
      * @return PDOStatement The executed PDO statement.
      */
-    protected function _delete(LogicalExpressionInterface $condition = null)
+    protected function _delete(
+        LogicalExpressionInterface $condition = null,
+        $ordering = null,
+        $limit = null,
+        $offset = null
+    )
     {
         $fieldNames   = $this->_getSqlDeleteFieldNames();
         $valueHashMap = ($condition !== null)
@@ -33,6 +49,9 @@ trait DeleteCapablePdoTrait
         $query = $this->_buildDeleteSql(
             $this->_getSqlDeleteTable(),
             $condition,
+            $ordering,
+            $limit,
+            $offset,
             $valueHashMap
         );
 
@@ -46,15 +65,24 @@ trait DeleteCapablePdoTrait
      *
      * @since [*next-version*]
      *
-     * @param string|Stringable               $table        The name of the table to delete from.
-     * @param LogicalExpressionInterface|null $condition    Optional condition that records must satisfy to be deleted.
-     * @param string[]|Stringable[]           $valueHashMap Optional mapping of term names to their hashes
+     * @param string|Stringable                 $table        The name of the table to delete from.
+     * @param LogicalExpressionInterface|null   $condition    The condition that records must satisfy to be deleted.
+     * @param OrderInterface[]|Traversable|null $ordering     The ordering, as a list of OrderInterface instances.
+     * @param int|null                          $limit        The number of records to limit the query to.
+     * @param int|null                          $offset       The number of records to offset by, zero-based.
+     * @param string[]|Stringable[]             $valueHashMap The mapping of term names to their hashes
+     *
+     * @throws InvalidArgumentException If an argument is invalid.
+     * @throws OutOfRangeException      If the limit or offset are invalid numbers.
      *
      * @return string The built DELETE query.
      */
     abstract protected function _buildDeleteSql(
         $table,
         LogicalExpressionInterface $condition = null,
+        $ordering = null,
+        $limit = null,
+        $offset = null,
         array $valueHashMap = []
     );
 

@@ -2,7 +2,13 @@
 
 namespace RebelCode\Storage\Resource\Pdo;
 
+use Dhii\Data\Container\ContainerGetCapableTrait;
+use Dhii\Data\Container\CreateContainerExceptionCapableTrait;
+use Dhii\Data\Container\CreateNotFoundExceptionCapableTrait;
+use Dhii\Data\Container\NormalizeKeyCapableTrait;
+use Dhii\Exception\CreateInternalExceptionCapableTrait;
 use Dhii\Exception\CreateInvalidArgumentExceptionCapableTrait;
+use Dhii\Exception\CreateOutOfBoundsExceptionCapableTrait;
 use Dhii\Exception\CreateOutOfRangeExceptionCapableTrait;
 use Dhii\Expression\LogicalExpressionInterface;
 use Dhii\Expression\TermInterface;
@@ -13,13 +19,17 @@ use Dhii\Output\TemplateInterface;
 use Dhii\Storage\Resource\UpdateCapableInterface;
 use Dhii\Util\Normalization\NormalizeArrayCapableTrait;
 use Dhii\Util\Normalization\NormalizeIntCapableTrait;
+use Dhii\Util\Normalization\NormalizeIterableCapableTrait;
 use Dhii\Util\Normalization\NormalizeStringCapableTrait;
 use Dhii\Util\String\StringableInterface as Stringable;
 use PDO;
+use RebelCode\Storage\Resource\Sql\BuildSqlLimitCapableTrait;
+use RebelCode\Storage\Resource\Sql\BuildSqlOrderByCapableTrait;
 use RebelCode\Storage\Resource\Sql\BuildSqlUpdateSetCapableTrait;
 use RebelCode\Storage\Resource\Sql\BuildSqlWhereClauseCapableTrait;
 use RebelCode\Storage\Resource\Sql\BuildUpdateSqlCapableTrait;
-use RebelCode\Storage\Resource\Sql\EscapeSqlReferencesCapableTrait;
+use RebelCode\Storage\Resource\Sql\EscapeSqlReferenceCapableTrait;
+use RebelCode\Storage\Resource\Sql\GetSqlColumnNameCapableContainerTrait;
 use RebelCode\Storage\Resource\Sql\NormalizeSqlValueCapableTrait;
 use RebelCode\Storage\Resource\Sql\RenderSqlExpressionCapableTrait;
 use RebelCode\Storage\Resource\Sql\SqlExpressionTemplateAwareTrait;
@@ -62,6 +72,12 @@ class PdoUpdateResourceModel extends AbstractPdoResourceModel implements UpdateC
      */
     use BuildSqlUpdateSetCapableTrait;
 
+    /* @since [*next-version*] */
+    use BuildSqlOrderByCapableTrait;
+
+    /* @since [*next-version*] */
+    use BuildSqlLimitCapableTrait;
+
     /*
      * Provides normalization functionality of SQL values.
      *
@@ -81,7 +97,7 @@ class PdoUpdateResourceModel extends AbstractPdoResourceModel implements UpdateC
      *
      * @since [*next-version*]
      */
-    use EscapeSqlReferencesCapableTrait;
+    use EscapeSqlReferenceCapableTrait;
 
     /*
      * Provides PDO expression value hash map generation functionality.
@@ -96,6 +112,9 @@ class PdoUpdateResourceModel extends AbstractPdoResourceModel implements UpdateC
      * @since [*next-version*]
      */
     use GetPdoValueHashStringCapableTrait;
+
+    /* @since [*next-version*] */
+    use GetSqlColumnNameCapableContainerTrait;
 
     /*
      * Provides SqL condition rendering functionality (via a template).
@@ -146,6 +165,12 @@ class PdoUpdateResourceModel extends AbstractPdoResourceModel implements UpdateC
      */
     use NormalizeIntCapableTrait;
 
+    /* @since [*next-version*] */
+    use NormalizeKeyCapableTrait;
+
+    /* @since [*next-version*] */
+    use NormalizeIterableCapableTrait;
+
     /*
      * Provides functionality for counting iterable variables.
      *
@@ -160,6 +185,9 @@ class PdoUpdateResourceModel extends AbstractPdoResourceModel implements UpdateC
      */
     use ResolveIteratorCapableTrait;
 
+    /* @since [*next-version*] */
+    use ContainerGetCapableTrait;
+
     /*
      * Provides functionality for creating invalid argument exceptions.
      *
@@ -173,6 +201,18 @@ class PdoUpdateResourceModel extends AbstractPdoResourceModel implements UpdateC
      * @since [*next-version*]
      */
     use CreateOutOfRangeExceptionCapableTrait;
+
+    /* @since [*next-version*] */
+    use CreateOutOfBoundsExceptionCapableTrait;
+
+    /* @since [*next-version*] */
+    use CreateInternalExceptionCapableTrait;
+
+    /* @since [*next-version*] */
+    use CreateNotFoundExceptionCapableTrait;
+
+    /* @since [*next-version*] */
+    use CreateContainerExceptionCapableTrait;
 
     /*
      * Provides string translating functionality.
@@ -204,7 +244,7 @@ class PdoUpdateResourceModel extends AbstractPdoResourceModel implements UpdateC
      *
      * @since [*next-version*]
      */
-    public function update($changeSet, LogicalExpressionInterface $condition = null)
+    public function update($changeSet, LogicalExpressionInterface $condition = null, $ordering = null, $limit = null)
     {
         return $this->_update($changeSet, $condition);
     }

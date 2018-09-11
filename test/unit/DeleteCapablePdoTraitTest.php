@@ -104,6 +104,10 @@ class DeleteCapablePdoTraitTest extends TestCase
                 $this->createLogicalExpression('greater_equals', ['userAge', 18]),
             ]
         );
+        $order = $this->getMockBuilder('Dhii\Storage\Resource\Sql\OrderInterface')
+            ->getMock();
+        $limit = rand(1, 4);
+        $offset = rand(5, 9);
 
         $subject->method('_getSqlDeleteFieldNames')
                 ->willReturn(['isVerified' => 'verified', 'userAge' => 'age']);
@@ -114,7 +118,7 @@ class DeleteCapablePdoTraitTest extends TestCase
 
         $subject->expects($this->once())
                 ->method('_buildDeleteSql')
-                ->with($table, $condition, $valueHashMap)
+                ->with($table, $condition, $order, $limit, $offset, $valueHashMap)
                 ->willReturn('DELETE FROM `users` WHERE `verified` = :123 AND `age` >= :456');
 
         $statement = $this->getMockBuilder('PDOStatement')
@@ -124,7 +128,7 @@ class DeleteCapablePdoTraitTest extends TestCase
         $subject->method('_executePdoQuery')
                 ->willReturn($statement);
 
-        $result = $reflect->_delete($condition);
+        $result = $reflect->_delete($condition, $order, $limit, $offset);
 
         $this->assertSame($statement, $result, 'Retrieved result is not the executed statement instance.');
     }
@@ -139,6 +143,12 @@ class DeleteCapablePdoTraitTest extends TestCase
         $subject = $this->createInstance();
         $reflect = $this->reflect($subject);
 
+        $condition = null;
+        $order = $this->getMockBuilder('Dhii\Storage\Resource\Sql\OrderInterface')
+            ->getMock();
+        $limit = rand(1, 4);
+        $offset = rand(5, 9);
+
         $subject->method('_getSqlDeleteFieldNames')
                 ->willReturn(['isVerified' => 'verified', 'userAge' => 'age']);
         $subject->method('_getSqlDeleteTable')
@@ -148,7 +158,7 @@ class DeleteCapablePdoTraitTest extends TestCase
 
         $subject->expects($this->once())
                 ->method('_buildDeleteSql')
-                ->with($table, null, $valueHashMap)
+                ->with($table, $condition, $order, $limit, $offset, $valueHashMap)
                 ->willReturn('DELETE FROM `users`');
 
         $statement = $this->getMockBuilder('PDOStatement')
@@ -158,7 +168,7 @@ class DeleteCapablePdoTraitTest extends TestCase
         $subject->method('_executePdoQuery')
                 ->willReturn($statement);
 
-        $result = $reflect->_delete();
+        $result = $reflect->_delete($condition, $order, $limit, $offset);
 
         $this->assertSame($statement, $result, 'Retrieved result is not the executed statement instance.');
     }

@@ -128,6 +128,10 @@ class SelectCapablePdoTraitTest extends TestCase
 
         $condition = null;
         $joins = [];
+        $order = $this->getMockBuilder('Dhii\Storage\Resource\Sql\OrderInterface')
+            ->getMock();
+        $limit = rand(1, 4);
+        $offset = rand(5, 9);
 
         $subject->method('_getSqlSelectColumns')->willReturn($cols = ['id', 'name']);
         $subject->method('_getSqlSelectTables')->willReturn($tables = ['users']);
@@ -137,7 +141,7 @@ class SelectCapablePdoTraitTest extends TestCase
 
         $subject->expects($this->once())
                 ->method('_buildSelectSql')
-                ->with($cols, $tables, $joins, $condition, $vhm)
+                ->with($cols, $tables, $joins, $condition, $order, $limit, $offset, $vhm)
                 ->willReturn('SELECT `id`, `name` FROM `users`');
 
         $expected = [
@@ -153,7 +157,7 @@ class SelectCapablePdoTraitTest extends TestCase
         $statement->method('fetchAll')->willReturn($expected);
         $subject->method('_executePdoQuery')->willReturn($statement);
 
-        $result = $reflect->_select();
+        $result = $reflect->_select($condition, $order, $limit, $offset);
 
         $this->assertEquals($expected, $result, 'Expected and retrieved results do not match');
     }
@@ -170,6 +174,10 @@ class SelectCapablePdoTraitTest extends TestCase
 
         $condition = $this->createLogicalExpression('greater', ['age', 18]);
         $joins = [];
+        $order = $this->getMockBuilder('Dhii\Storage\Resource\Sql\OrderInterface')
+            ->getMock();
+        $limit = rand(1, 4);
+        $offset = rand(5, 9);
 
         $subject->method('_getSqlSelectColumns')->willReturn($cols = ['id', 'name']);
         $subject->method('_getSqlSelectTables')->willReturn($tables = ['users']);
@@ -179,7 +187,7 @@ class SelectCapablePdoTraitTest extends TestCase
 
         $subject->expects($this->once())
                 ->method('_buildSelectSql')
-                ->with($cols, $tables, $joins, $condition, $vhm)
+                ->with($cols, $tables, $joins, $condition, $order, $limit, $offset, $vhm)
                 ->willReturn('SELECT `id`, `name` FROM `users` WHERE `age` > 18');
 
         $expected = [
@@ -193,7 +201,7 @@ class SelectCapablePdoTraitTest extends TestCase
         $statement->method('fetchAll')->willReturn($expected);
         $subject->method('_executePdoQuery')->willReturn($statement);
 
-        $result = $reflect->_select($condition);
+        $result = $reflect->_select($condition, $order, $limit, $offset);
 
         $this->assertEquals(
             $expected,
@@ -225,6 +233,10 @@ class SelectCapablePdoTraitTest extends TestCase
                 ]
             ),
         ];
+        $order = $this->getMockBuilder('Dhii\Storage\Resource\Sql\OrderInterface')
+            ->getMock();
+        $limit = rand(1, 4);
+        $offset = rand(5, 9);
 
         $subject->method('_getSqlSelectColumns')->willReturn($cols = ['id', 'name']);
         $subject->method('_getSqlSelectTables')->willReturn($tables = ['users']);
@@ -234,7 +246,7 @@ class SelectCapablePdoTraitTest extends TestCase
 
         $subject->expects($this->once())
                 ->method('_buildSelectSql')
-                ->with($cols, $tables, $joins, $condition, $vhm)
+                ->with($cols, $tables, $joins, $condition, $order, $limit, $offset, $vhm)
                 ->willReturn(
                     'SELECT `msgs`.`id`, `msgs`.`content`, `users`.`name`
                           FROM `msgs`
@@ -253,7 +265,7 @@ class SelectCapablePdoTraitTest extends TestCase
         $statement->method('fetchAll')->willReturn($expected);
         $subject->method('_executePdoQuery')->willReturn($statement);
 
-        $result = $reflect->_select();
+        $result = $reflect->_select($condition, $order, $limit, $offset);
 
         $this->assertEquals(
             $expected,
@@ -291,6 +303,10 @@ class SelectCapablePdoTraitTest extends TestCase
                 ]
             ),
         ];
+        $order = $this->getMockBuilder('Dhii\Storage\Resource\Sql\OrderInterface')
+            ->getMock();
+        $limit = rand(1, 4);
+        $offset = rand(5, 9);
 
         $subject->method('_getSqlSelectColumns')->willReturn($cols = ['id', 'name']);
         $subject->method('_getSqlSelectTables')->willReturn($tables = ['users']);
@@ -300,7 +316,7 @@ class SelectCapablePdoTraitTest extends TestCase
 
         $subject->expects($this->once())
                 ->method('_buildSelectSql')
-                ->with($cols, $tables, $joins, $condition, $vhm)
+                ->with($cols, $tables, $joins, $condition, $order, $limit, $offset, $vhm)
                 ->willReturn(
                     'SELECT `msgs`.`id`, `msgs`.`content`, `users`.`name`
                           FROM `msgs`
@@ -319,7 +335,7 @@ class SelectCapablePdoTraitTest extends TestCase
         $statement->method('fetchAll')->willReturn($expected);
         $subject->method('_executePdoQuery')->willReturn($statement);
 
-        $result = $reflect->_select($condition);
+        $result = $reflect->_select($condition, $order, $limit, $offset);
 
         $this->assertEquals(
             $expected,

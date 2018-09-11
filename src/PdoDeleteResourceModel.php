@@ -2,20 +2,33 @@
 
 namespace RebelCode\Storage\Resource\Pdo;
 
+use Dhii\Data\Container\ContainerGetCapableTrait;
+use Dhii\Data\Container\CreateContainerExceptionCapableTrait;
+use Dhii\Data\Container\CreateNotFoundExceptionCapableTrait;
+use Dhii\Data\Container\NormalizeKeyCapableTrait;
+use Dhii\Exception\CreateInternalExceptionCapableTrait;
 use Dhii\Exception\CreateInvalidArgumentExceptionCapableTrait;
+use Dhii\Exception\CreateOutOfBoundsExceptionCapableTrait;
+use Dhii\Exception\CreateOutOfRangeExceptionCapableTrait;
 use Dhii\Expression\LogicalExpressionInterface;
 use Dhii\Expression\TermInterface;
 use Dhii\I18n\StringTranslatingTrait;
 use Dhii\Output\TemplateInterface;
 use Dhii\Storage\Resource\DeleteCapableInterface;
 use Dhii\Util\Normalization\NormalizeArrayCapableTrait;
+use Dhii\Util\Normalization\NormalizeIntCapableTrait;
+use Dhii\Util\Normalization\NormalizeIterableCapableTrait;
 use Dhii\Util\Normalization\NormalizeStringCapableTrait;
 use Dhii\Util\String\StringableInterface as Stringable;
 use InvalidArgumentException;
 use PDO;
 use RebelCode\Storage\Resource\Sql\BuildDeleteSqlCapableTrait;
+use RebelCode\Storage\Resource\Sql\BuildSqlLimitCapableTrait;
+use RebelCode\Storage\Resource\Sql\BuildSqlOffsetCapableTrait;
+use RebelCode\Storage\Resource\Sql\BuildSqlOrderByCapableTrait;
 use RebelCode\Storage\Resource\Sql\BuildSqlWhereClauseCapableTrait;
-use RebelCode\Storage\Resource\Sql\EscapeSqlReferencesCapableTrait;
+use RebelCode\Storage\Resource\Sql\EscapeSqlReferenceCapableTrait;
+use RebelCode\Storage\Resource\Sql\GetSqlColumnNameCapableContainerTrait;
 use RebelCode\Storage\Resource\Sql\RenderSqlExpressionCapableTrait;
 use RebelCode\Storage\Resource\Sql\SqlExpressionTemplateAwareTrait;
 use RebelCode\Storage\Resource\Sql\SqlFieldColumnMapAwareTrait;
@@ -58,12 +71,24 @@ class PdoDeleteResourceModel extends AbstractPdoResourceModel implements DeleteC
      */
     use BuildSqlWhereClauseCapableTrait;
 
+    /* @since [*next-version*] */
+    use BuildSqlLimitCapableTrait;
+
+    /* @since [*next-version*] */
+    use BuildSqlOrderByCapableTrait;
+
+    /* @since [*next-version*] */
+    use BuildSqlOffsetCapableTrait;
+
     /*
      * Provides PDO expression value hash map generation functionality.
      *
      * @since [*next-version*]
      */
     use GetPdoExpressionHashMapCapableTrait;
+
+    /* @since [*next-version*] */
+    use GetSqlColumnNameCapableContainerTrait;
 
     /*
      * Provides PDO value hash string generation functionality.
@@ -77,7 +102,7 @@ class PdoDeleteResourceModel extends AbstractPdoResourceModel implements DeleteC
      *
      * @since [*next-version*]
      */
-    use EscapeSqlReferencesCapableTrait;
+    use EscapeSqlReferenceCapableTrait;
 
     /*
      * Provides SqL condition rendering functionality (via a template).
@@ -114,6 +139,11 @@ class PdoDeleteResourceModel extends AbstractPdoResourceModel implements DeleteC
      */
     use SqlExpressionTemplateAwareTrait;
 
+    /* @since [*next-version*] */
+    use ContainerGetCapableTrait;
+
+    use NormalizeKeyCapableTrait;
+
     /*
      * Provides string normalization functionality.
      *
@@ -128,12 +158,33 @@ class PdoDeleteResourceModel extends AbstractPdoResourceModel implements DeleteC
      */
     use NormalizeArrayCapableTrait;
 
+    /* @since [*next-version*] */
+    use NormalizeIterableCapableTrait;
+
+    /* @since [*next-version*] */
+    use NormalizeIntCapableTrait;
+
     /*
      * Provides functionality for creating invalid argument exceptions.
      *
      * @since [*next-version*]
      */
     use CreateInvalidArgumentExceptionCapableTrait;
+
+    /* @since [*next-version*] */
+    use CreateOutOfRangeExceptionCapableTrait;
+
+    /* @since [*next-version*] */
+    use CreateOutOfBoundsExceptionCapableTrait;
+
+    /* @since [*next-version*] */
+    use CreateInternalExceptionCapableTrait;
+
+    /* @since [*next-version*] */
+    use CreateNotFoundExceptionCapableTrait;
+
+    /* @since [*next-version*] */
+    use CreateContainerExceptionCapableTrait;
 
     /*
      * Provides string translating functionality.
@@ -167,9 +218,14 @@ class PdoDeleteResourceModel extends AbstractPdoResourceModel implements DeleteC
      *
      * @since [*next-version*]
      */
-    public function delete(LogicalExpressionInterface $condition = null)
+    public function delete(
+        LogicalExpressionInterface $condition = null,
+        $ordering = null,
+        $limit = null,
+        $offset = null
+    )
     {
-        return $this->_delete($condition);
+        return $this->_delete($condition, $ordering, $limit, $offset);
     }
 
     /**

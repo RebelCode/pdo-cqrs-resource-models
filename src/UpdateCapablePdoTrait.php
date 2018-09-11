@@ -4,10 +4,12 @@ namespace RebelCode\Storage\Resource\Pdo;
 
 use Dhii\Expression\LogicalExpressionInterface;
 use Dhii\Expression\TermInterface;
+use Dhii\Storage\Resource\Sql\OrderInterface;
 use Dhii\Util\String\StringableInterface as Stringable;
 use Exception as RootException;
 use InvalidArgumentException;
 use PDOStatement;
+use stdClass;
 use Traversable;
 
 /**
@@ -22,18 +24,18 @@ trait UpdateCapablePdoTrait
      *
      * @since [*next-version*]
      *
-     * @param array|Traversable               $changeSet The change set, mapping field names to their new values.
-     *                                                   Accepted value types are:
-     *                                                   * int
-     *                                                   * float
-     *                                                   * string
-     *                                                   * bool
-     *                                                   * Dhii\Expression\TermInterface
-     * @param LogicalExpressionInterface|null $condition Optional condition that records must satisfy to be updated.
+     * @param array|TermInterface[]|Traversable|stdClass $changeSet The change set, mapping field names to their new
+     *                                                              values. The values don't have to be all of the same
+     *                                                              type.
+     * @param LogicalExpressionInterface|null            $condition An optional condition which, if specified, restricts
+     *                                                              the affected records to those that satisfy this
+     *                                                              condition.
+     * @param OrderInterface[]|stdClass|Traversable|null $ordering  The ordering, as a list of `OrderInterface` objects.
+     * @param int|float|string|Stringable|null           $limit     The number of records to limit the query to.
      *
      * @return PDOStatement The executed PDO statement.
      */
-    protected function _update($changeSet, LogicalExpressionInterface $condition = null)
+    protected function _update($changeSet, LogicalExpressionInterface $condition = null, $ordering = null, $limit = null)
     {
         $fields       = array_keys($this->_getSqlUpdateFieldColumnMap());
         $valueHashMap = ($condition !== null)
@@ -46,6 +48,8 @@ trait UpdateCapablePdoTrait
             $this->_getSqlUpdateTable(),
             $changeSet,
             $condition,
+            $ordering,
+            $limit,
             $valueHashMap
         );
 
@@ -135,6 +139,8 @@ trait UpdateCapablePdoTrait
      * @param array|TermInterface[]|Traversable $changeSet    The change set, mapping field names to their new values
      *                                                        or value expressions.
      * @param LogicalExpressionInterface|null   $condition    Optional WHERE clause condition.
+     * @param OrderInterface[]|Traversable|null $ordering     The ordering, as a list of OrderInterface instances.
+     * @param int|null                          $limit        The number of records to limit the query to.
      * @param array                             $valueHashMap Optional map of value names and their hashes.
      *
      * @throws InvalidArgumentException If the change set is empty.
@@ -145,6 +151,8 @@ trait UpdateCapablePdoTrait
         $table,
         $changeSet,
         LogicalExpressionInterface $condition = null,
+        $ordering = null,
+        $limit = null,
         array $valueHashMap = []
     );
 

@@ -97,6 +97,21 @@ class PdoSelectResourceModelTest extends BaseDatabaseTestCase
         );
     }
 
+    protected function _remapKeys($array, $map)
+    {
+        $result = [];
+
+        foreach ($array as $_key => $_value) {
+            $key = array_key_exists($_key, $map)
+                ? $map[$_key]
+                : $_key;
+
+            $result[$key] = $_value;
+        }
+
+        return $result;
+    }
+
     /**
      * Creates a mock that both extends a class and implements interfaces.
      *
@@ -225,7 +240,7 @@ class PdoSelectResourceModelTest extends BaseDatabaseTestCase
     {
         $pdo = $this->_getPdo();
         $template = $this->createTemplate();
-        $tables = [uniqid('table-'), uniqid('table-')];
+        $tables = array_combine($tables = [uniqid('table-'), uniqid('table-')], $tables);
         $fcMap = [
             'id' => 'id',
             'name' => 'user_name',
@@ -253,7 +268,7 @@ class PdoSelectResourceModelTest extends BaseDatabaseTestCase
      */
     public function testSelectNoJoins()
     {
-        $table = 'users';
+        $tables = array_combine($tables = ['users'], $tables);
         $fcMap = [
             'id' => 'id',
             'name' => 'user_name',
@@ -261,7 +276,7 @@ class PdoSelectResourceModelTest extends BaseDatabaseTestCase
         ];
         $joins = [];
         $template = $this->createTemplate();
-        $subject = new TestSubject($this->_getPdo(), $template, [$table], $fcMap, $joins);
+        $subject = new TestSubject($this->_getPdo(), $template, $tables, $fcMap, $joins);
 
         $condition = $this->createLogicalExpression(
             'greater_equal_to',
@@ -280,8 +295,8 @@ class PdoSelectResourceModelTest extends BaseDatabaseTestCase
 
         $dataSet = $this->getDataSet();
         $expected = [
-            $dataSet->getTable('users')->getRow(0),
-            $dataSet->getTable('users')->getRow(1),
+            $this->_remapKeys($dataSet->getTable('users')->getRow(0), array_flip($fcMap)),
+            $this->_remapKeys($dataSet->getTable('users')->getRow(1), array_flip($fcMap)),
         ];
 
         $actual = $subject->select($condition);
@@ -296,7 +311,7 @@ class PdoSelectResourceModelTest extends BaseDatabaseTestCase
      */
     public function testSelectWithJoins()
     {
-        $table = 'users';
+        $tables = array_combine($tables = ['users'], $tables);
         $fcMap = [
             'id' => 'id',
             'name' => 'user_name',
@@ -313,7 +328,7 @@ class PdoSelectResourceModelTest extends BaseDatabaseTestCase
             ),
         ];
         $template = $this->createTemplate();
-        $subject = new TestSubject($this->_getPdo(), $template, [$table], $fcMap, $joins);
+        $subject = new TestSubject($this->_getPdo(), $template, $tables, $fcMap, $joins);
 
         $template->expects($this->atLeastOnce())
                  ->method('render')
@@ -321,14 +336,14 @@ class PdoSelectResourceModelTest extends BaseDatabaseTestCase
 
         $dataSet = $this->getDataSet();
         $expected = [
-            array_merge(
+            $this->_remapKeys(array_merge(
                 $dataSet->getTable('users')->getRow(0),
                 ['id_2' => $dataSet->getTable('linked_accounts')->getValue(1, 'id_2')]
-            ),
-            array_merge(
+            ), array_flip($fcMap)),
+            $this->_remapKeys(array_merge(
                 $dataSet->getTable('users')->getRow(1),
                 ['id_2' => $dataSet->getTable('linked_accounts')->getValue(0, 'id_2')]
-            ),
+            ), array_flip($fcMap)),
         ];
 
         $actual = $subject->select();
@@ -343,7 +358,7 @@ class PdoSelectResourceModelTest extends BaseDatabaseTestCase
      */
     public function testSelectMultipleTables()
     {
-        $tables = ['users', 'comments'];
+        $tables = array_combine($tables = ['users', 'comments'], $tables);
         $fcMap = [
             'id' => 'id',
             'name' => 'user_name',
@@ -363,6 +378,9 @@ class PdoSelectResourceModelTest extends BaseDatabaseTestCase
                 $this->createEntityFieldTerm('comments', 'user_id'),
             ]
         );
+        $order = null;
+        $limit = null;
+        $offset = null;
 
         $template->expects($this->atLeastOnce())
                  ->method('render')
@@ -371,21 +389,21 @@ class PdoSelectResourceModelTest extends BaseDatabaseTestCase
 
         $dataSet = $this->getDataSet();
         $expected = [
-            array_merge(
+            $this->_remapKeys(array_merge(
                 $dataSet->getTable('users')->getRow(0),
                 $dataSet->getTable('comments')->getRow(1)
-            ),
-            array_merge(
+            ), array_flip($fcMap)),
+            $this->_remapKeys(array_merge(
                 $dataSet->getTable('users')->getRow(1),
                 $dataSet->getTable('comments')->getRow(0)
-            ),
-            array_merge(
+            ), array_flip($fcMap)),
+            $this->_remapKeys(array_merge(
                 $dataSet->getTable('users')->getRow(2),
                 $dataSet->getTable('comments')->getRow(2)
-            ),
+            ), array_flip($fcMap)),
         ];
 
-        $actual = $subject->select($condition);
+        $actual = $subject->select($condition, $order, $limit, $offset);
 
         $this->assertEquals($expected, $actual);
     }

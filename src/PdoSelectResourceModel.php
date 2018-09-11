@@ -2,21 +2,40 @@
 
 namespace RebelCode\Storage\Resource\Pdo;
 
+use Dhii\Data\Container\ContainerGetCapableTrait;
+use Dhii\Data\Container\CreateContainerExceptionCapableTrait;
+use Dhii\Data\Container\CreateNotFoundExceptionCapableTrait;
+use Dhii\Data\Container\NormalizeKeyCapableTrait;
+use Dhii\Exception\CreateInternalExceptionCapableTrait;
 use Dhii\Exception\CreateInvalidArgumentExceptionCapableTrait;
+use Dhii\Exception\CreateOutOfBoundsExceptionCapableTrait;
+use Dhii\Exception\CreateOutOfRangeExceptionCapableTrait;
 use Dhii\Expression\ExpressionInterface;
 use Dhii\Expression\LogicalExpressionInterface;
 use Dhii\Expression\TermInterface;
 use Dhii\I18n\StringTranslatingTrait;
+use Dhii\Iterator\CountIterableCapableTrait;
+use Dhii\Iterator\ResolveIteratorCapableTrait;
 use Dhii\Output\TemplateInterface;
 use Dhii\Storage\Resource\SelectCapableInterface;
+use Dhii\Storage\Resource\Sql\OrderInterface;
 use Dhii\Util\Normalization\NormalizeArrayCapableTrait;
+use Dhii\Util\Normalization\NormalizeIntCapableTrait;
+use Dhii\Util\Normalization\NormalizeIterableCapableTrait;
 use Dhii\Util\Normalization\NormalizeStringCapableTrait;
 use Dhii\Util\String\StringableInterface as Stringable;
 use PDO;
+use Psr\Container\ContainerInterface;
 use RebelCode\Storage\Resource\Sql\BuildSelectSqlCapableTrait;
+use RebelCode\Storage\Resource\Sql\BuildSqlColumnListCapableTrait;
+use RebelCode\Storage\Resource\Sql\BuildSqlFromCapableTrait;
 use RebelCode\Storage\Resource\Sql\BuildSqlJoinsCapableTrait;
+use RebelCode\Storage\Resource\Sql\BuildSqlLimitCapableTrait;
+use RebelCode\Storage\Resource\Sql\BuildSqlOffsetCapableTrait;
+use RebelCode\Storage\Resource\Sql\BuildSqlOrderByCapableTrait;
 use RebelCode\Storage\Resource\Sql\BuildSqlWhereClauseCapableTrait;
-use RebelCode\Storage\Resource\Sql\EscapeSqlReferencesCapableTrait;
+use RebelCode\Storage\Resource\Sql\EscapeSqlReferenceCapableTrait;
+use RebelCode\Storage\Resource\Sql\GetSqlColumnNameCapableContainerTrait;
 use RebelCode\Storage\Resource\Sql\RenderSqlExpressionCapableTrait;
 use RebelCode\Storage\Resource\Sql\SqlColumnNamesAwareTrait;
 use RebelCode\Storage\Resource\Sql\SqlExpressionTemplateAwareTrait;
@@ -24,6 +43,8 @@ use RebelCode\Storage\Resource\Sql\SqlFieldColumnMapAwareTrait;
 use RebelCode\Storage\Resource\Sql\SqlFieldNamesAwareTrait;
 use RebelCode\Storage\Resource\Sql\SqlJoinConditionsAwareTrait;
 use RebelCode\Storage\Resource\Sql\SqlTableListAwareTrait;
+use stdClass;
+use Traversable;
 
 /**
  * Concrete implementation of a SELECT resource model for use with a PDO database connection.
@@ -68,12 +89,27 @@ class PdoSelectResourceModel extends AbstractPdoResourceModel implements SelectC
      */
     use BuildSqlWhereClauseCapableTrait;
 
+    /* @since [*next-version*] */
+    use BuildSqlColumnListCapableTrait;
+
+    /* @since [*next-version*] */
+    use BuildSqlFromCapableTrait;
+
+    /* @since [*next-version*] */
+    use BuildSqlOrderByCapableTrait;
+
+    /* @since [*next-version*] */
+    use BuildSqlLimitCapableTrait;
+
+    /* @since [*next-version*] */
+    use BuildSqlOffsetCapableTrait;
+
     /*
      * Provides SQL reference escaping functionality.
      *
      * @since [*next-version*]
      */
-    use EscapeSqlReferencesCapableTrait;
+    use EscapeSqlReferenceCapableTrait;
 
     /*
      * Provides PDO expression value hash map generation functionality.
@@ -88,6 +124,9 @@ class PdoSelectResourceModel extends AbstractPdoResourceModel implements SelectC
      * @since [*next-version*]
      */
     use GetPdoValueHashStringCapableTrait;
+
+    /* @since [*next-version*] */
+    use GetSqlColumnNameCapableContainerTrait;
 
     /*
      * Provides SqL condition rendering functionality (via a template).
@@ -152,12 +191,45 @@ class PdoSelectResourceModel extends AbstractPdoResourceModel implements SelectC
      */
     use NormalizeArrayCapableTrait;
 
+    /* @since [*next-version*] */
+    use NormalizeIterableCapableTrait;
+
+    /* @since [*next-version*] */
+    use NormalizeIntCapableTrait;
+
+    /* @since [*next-version*] */
+    use NormalizeKeyCapableTrait;
+
+    /* @since [*next-version*] */
+    use CountIterableCapableTrait;
+
+    /* @since [*next-version*] */
+    use ResolveIteratorCapableTrait;
+
+    /* @since [*next-version*] */
+    use ContainerGetCapableTrait;
+
     /*
      * Provides functionality for creating invalid argument exceptions.
      *
      * @since [*next-version*]
      */
     use CreateInvalidArgumentExceptionCapableTrait;
+
+    /* @since [*next-version*] */
+    use CreateOutOfRangeExceptionCapableTrait;
+
+    /* @since [*next-version*] */
+    use CreateOutOfBoundsExceptionCapableTrait;
+
+    /* @since [*next-version*] */
+    use CreateInternalExceptionCapableTrait;
+
+    /* @since [*next-version*] */
+    use CreateNotFoundExceptionCapableTrait;
+
+    /* @since [*next-version*] */
+    use CreateContainerExceptionCapableTrait;
 
     /*
      * Provides string translating functionality.
@@ -180,7 +252,8 @@ class PdoSelectResourceModel extends AbstractPdoResourceModel implements SelectC
      *
      * @param PDO                          $pdo                The PDO instance to use to prepare and execute queries.
      * @param TemplateInterface            $expressionTemplate The template for rendering SQL expressions.
-     * @param string[]|Stringable[]        $tables             The tables from which to SELECT from.
+     * @param array|stdClass|Traversable   $tables             The tables names (values) mapping to their aliases (keys)
+     *                                                         or null for no aliasing.
      * @param string[]|Stringable[]        $fieldColumnMap     A map of field names to table column names.
      * @param LogicalExpressionInterface[] $joins              A list of JOIN expressions to use in SELECT queries.
      */
@@ -198,9 +271,14 @@ class PdoSelectResourceModel extends AbstractPdoResourceModel implements SelectC
      *
      * @since [*next-version*]
      */
-    public function select(LogicalExpressionInterface $condition = null)
+    public function select(
+        LogicalExpressionInterface $condition = null,
+        $ordering = null,
+        $limit = null,
+        $offset = null
+    )
     {
-        return $this->_select($condition);
+        return $this->_select($condition, $ordering, $limit, $offset);
     }
 
     /**
@@ -230,7 +308,7 @@ class PdoSelectResourceModel extends AbstractPdoResourceModel implements SelectC
      */
     protected function _getSqlSelectColumns()
     {
-        return $this->_getSqlColumnNames();
+        return $this->_getSqlFieldColumnMap();
     }
 
     /**
