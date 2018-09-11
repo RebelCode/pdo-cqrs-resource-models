@@ -14,9 +14,9 @@
     "require": {
         "php": "^5.4 | ^7.0",
         "dhii/cqrs-resource-model-interface": "^0.1",
-        "rebelcode/sql-cqrs-resource-models-abstract": "dev-task/initial-classes",
+        "rebelcode/sql-cqrs-resource-models-abstract": "^0.1-alpha1",
         "dhii/normalization-helper-base": "^0.1",
-        "dhii/exception-helper-base": "^0.1",
+        "dhii/exception": "^0.1-alpha5",
         "dhii/data-container-base": "^0.1",
         "dhii/container-helper-base": "^0.1",
         "dhii/iterator-helper-base": "^0.1",
