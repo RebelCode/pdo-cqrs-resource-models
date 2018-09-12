@@ -108,13 +108,18 @@ trait InsertCapablePdoTrait
         foreach ($this->_getSqlInsertFieldColumnMap() as $_field => $_column) {
             try {
                 $_value = $this->_containerGet($record, $_field);
+                // Add column-to-value entry to record data
+                $result[$_column] = $_value;
+
+                if ($_value === null) {
+                    continue;
+                }
+
                 // Calculate hash for value
                 $_valueStr  = $this->_normalizeString($_value);
                 $_valueHash = $this->_getPdoValueHashString($_valueStr);
                 // Add value-to-hash entry to map
                 $valueHashMap[$_valueStr] = $_valueHash;
-                // Add column-to-value entry to record data
-                $result[$_column] = $_value;
             } catch (NotFoundExceptionInterface $notFoundException) {
                 continue;
             } catch (OutOfRangeException $outOfRangeException) {
