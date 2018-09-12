@@ -197,7 +197,9 @@ class PdoInsertResourceModel extends AbstractPdoResourceModel implements InsertC
      */
     public function insert($records)
     {
-        return $this->_insert($records);
+        $statement = $this->_insert($records);
+
+        return [$this->_getPdo()->lastInsertId()];
     }
 
     /**
